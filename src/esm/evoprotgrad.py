@@ -5,7 +5,6 @@ Andreas Werdich
 2024 Center for Computational Biomedicine
 Harvard Medical School
 """
-import os
 import logging
 import pandas as pd
 import tempfile
@@ -31,6 +30,21 @@ esm_checkpoints = {
 
 
 def set_expert(name='esm', checkpoint='default', device=None, **kwargs):
+    """
+    Set up an expert for the given parameters.
+
+    Parameters:
+        name (str, optional): The name of the expert. Defaults to 'esm'.
+        checkpoint (str, optional): The checkpoint for the expert. Defaults to 'default'.
+        device (str, optional): The device to be used. Defaults to None.
+        **kwargs: Additional keyword arguments to be passed.
+
+    Returns:
+        expert: The initialized expert.
+
+    Raises:
+        None.
+    """
     checkpoint = esm_checkpoints.get(checkpoint)
     expert = evo_prot_grad.get_expert(
         expert_name=name,
@@ -42,12 +56,26 @@ def set_expert(name='esm', checkpoint='default', device=None, **kwargs):
 
 
 class EvoProtGrad:
+    """
+    class EvoProtGrad:
+        def __init__(self, name='esm', checkpoint='default'):
+    """
     def __init__(self, name='esm', checkpoint='default'):
         self.name = name
         self.device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
         self.expert = set_expert(name=name, checkpoint=checkpoint, device=self.device)
 
     def single_evolute(self, raw_protein_sequence, **kwargs):
+        """
+        Evolute a protein sequence and return a pandas DataFrame containing information about the variants.
+
+        :param raw_protein_sequence: The input protein sequence.
+        :type raw_protein_sequence: str
+        :param **kwargs: Additional keyword arguments to be passed to the `evolute()` method.
+
+        :return: A pandas DataFrame containing information about the variants.
+        :rtype: pd.DataFrame
+        """
         variants, scores = self.evolute(raw_protein_sequence=raw_protein_sequence)
         var_df_list = []
         for evolution, var_protein_sequence in enumerate(variants):
@@ -70,13 +98,16 @@ class EvoProtGrad:
 
     def evolute(self, raw_protein_sequence):
         """
-        Evolute method
-        This method performs directed evolution on a given protein sequence.
-        Parameters:
-        - raw_protein_sequence (str): The raw protein sequence on which the evolution process will be performed.
-        Returns:
-        - variants (list): A list of evolved protein variants.
-        - scores (list): A list of scores corresponding to each evolved variant.
+        Evolute Method
+
+        This method takes a raw protein sequence as input and performs directed evolution on the sequence using a
+        specified set of parameters. It returns the generated variants and their corresponding * scores.
+
+        :param raw_protein_sequence: The raw protein sequence to be evolved.
+        :type raw_protein_sequence: str
+
+        :return: A tuple containing the evolved variants and their corresponding scores.
+        :rtype: tuple
         """
         fasta_format_sequence = f'>Input_Sequence\n{raw_protein_sequence}'
         with tempfile.NamedTemporaryFile(mode='w+t', delete=False) as temp_fasta_path:
